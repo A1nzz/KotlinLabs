@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Calculator</string>
+    <string name="_1">1</string>
+    <string name="divideText">÷</string>
+    <string name="multiplyText">x</string>
+    <string name="substractText">-</string>
+    <string name="addText">+</string>
+    <string name="openBracket">(</string>
+    <string name="closeBracket">)</string>
 </resources>

@@ -1,102 +1,201 @@
 package com.example.calculator
 
+import android.text.SpannableStringBuilder
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
-import android.widget.Toast
-import java.util.*
+import android.widget.TextView
+import androidx.core.os.HandlerCompat.postDelayed
+import org.mariuszgromada.math.mxparser.Expression
+
+
+
+
+
 
 
 class MainActivity : ComponentActivity() {
     private lateinit var displayEditText: EditText
-    private var currentOperator: String? = null
-    private var operand1: Double? = null
-    private var operand2: Double? = null
-    private var isGotResult: Boolean = false
+    private lateinit var previousCal: TextView
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?)
+    {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         displayEditText = findViewById(R.id.displayEditText)
+        previousCal = findViewById(R.id.resultText)
+        displayEditText.showSoftInputOnFocus = false
+
+
     }
 
-    fun onDigitClick(view: View) {
-        val button = view as Button
-        val digit = button.text.toString()
-        if (isGotResult) {
-            displayEditText.text.clear()
-            isGotResult = false
+    private fun updateText(strToAdd:String){
+
+        val oldStr = displayEditText.text.toString()
+        val cursorPs = displayEditText.selectionStart
+        val leftStr = oldStr.substring(0,cursorPs)
+        val rightStr = oldStr.substring(cursorPs)
+        displayEditText.setText(String.format("%s%s%s",leftStr,strToAdd,rightStr))
+        displayEditText.setSelection(cursorPs + strToAdd.length)
+    }
+    fun onDigitClick(view: View)
+    {
+        if(view is Button)
+        {
+            updateText((view).text.toString())
         }
-        displayEditText.append(digit)
     }
 
-    fun onOperationClick(view: View) {
-        val button = view as Button
-        val operation = button.text.toString()
-
-        if (displayEditText.text.isEmpty()) {
-            Toast.makeText(this, "Введите число", Toast.LENGTH_SHORT).show()
-            return
+    fun onDivideClick(view: View)
+    {
+        if(view is Button)
+        {
+            updateText(resources.getString(R.string.divideText))
         }
+    }
 
-        if (operand1 != null && currentOperator != null) {
-            operand2 = displayEditText.text.toString().toDouble()
-            operand1 = performOperation(operand1!!, operand2!!, currentOperator!!)
-            operand2 = null
-            currentOperator = operation
-            displayEditText.text.clear()
-            return
+    fun onMultiplyClick(view: View)
+    {
+        if(view is Button)
+        {
+            updateText(resources.getString(R.string.multiplyText))
         }
+    }
+    fun onSubstractClick(view: View)
+    {
+        if(view is Button)
+        {
+            updateText(resources.getString(R.string.substractText))
+        }
+    }
 
-        currentOperator = operation
-        operand1 = displayEditText.text.toString().toDouble()
+    fun onAddClick(view: View)
+    {
+        if(view is Button)
+        {
+            updateText(resources.getString(R.string.addText))
+        }
+    }
+
+    fun onOpenBracket(view: View)
+    {
+        if(view is Button)
+        {
+            updateText(resources.getString(R.string.openBracket))
+        }
+    }
+
+    fun onCloseBracket(view: View)
+    {
+        if(view is Button)
+        {
+            updateText(resources.getString(R.string.closeBracket))
+        }
+    }
+
+    fun onClearClick(view: View)
+    {
         displayEditText.text.clear()
+        previousCal.text = ""
     }
 
-    fun onClearClick(view: View) {
-        displayEditText.text.clear()
-        currentOperator = null
-        operand1 = null
-        operand2 = null
-    }
-
-    fun onEqualsClick(view: View) {
-        if (currentOperator != null && operand1 != null) {
-            if (displayEditText.text.isEmpty()) {
-                Toast.makeText(this, "Введите число", Toast.LENGTH_SHORT).show()
-                return
-            }
-            operand2 = displayEditText.text.toString().toDouble()
-            try {
-                val result = performOperation(operand1!!, operand2!!, currentOperator!!)
-                displayEditText.setText(String.format(Locale.getDefault(), "%.2f", result))
-                operand1 = result
-                operand2 = null
-                currentOperator = null
-                isGotResult = true
-            } catch (e: IllegalArgumentException) {
-                Toast.makeText(this, "Недопустимая операция", Toast.LENGTH_SHORT).show()
-            } catch (e: ArithmeticException) {
-                Toast.makeText(this, "Ошибка деления на ноль", Toast.LENGTH_SHORT).show()
-            }
+    fun onBackspaceClick(view: View)
+    {
+        val cursorPos = displayEditText.selectionStart
+        val textLen = displayEditText.text.length
+        if (cursorPos != 0 && textLen != 0){
+            val selection = displayEditText.text as SpannableStringBuilder
+            selection.replace(cursorPos -1,cursorPos,"")
+            displayEditText.text = selection
+            displayEditText.setSelection(cursorPos -1)
         }
     }
 
-    private fun performOperation(operand1: Double, operand2: Double, operation: String): Double {
-        return when (operation) {
-            "+" -> operand1 + operand2
-            "-" -> operand1 - operand2
-            "*" -> operand1 * operand2
-            "/" -> {
-                if (operand2 == 0.0) {
-                    throw ArithmeticException()
-                }
-                operand1 / operand2
-            }
-            else -> throw IllegalArgumentException()
+    fun onEqualsClick(view: View)
+    {
+        var userExp = displayEditText.text.toString()
+
+        userExp = userExp.replace(resources.getString(R.string.divideText).toRegex(), "/")
+        userExp = userExp.replace(resources.getString(R.string.multiplyText).toRegex(), "*")
+        val exp = Expression(userExp)
+        val result = exp.calculate().toString()
+        previousCal.setText(result)
+    }
+
+    fun onSquareClick(view: View)
+    {
+        if(view is Button)
+        {
+            updateText("^(2)")
+        }
+    }
+    fun onLnClick(view: View)
+    {
+        if(view is Button)
+        {
+            updateText("ln(")
+        }
+    }
+    fun onEClick(view: View)
+    {
+        if(view is Button)
+        {
+            updateText("e")
+        }
+    }
+    fun onPiClick(view: View)
+    {
+        if(view is Button)
+        {
+            updateText("pi")
+        }
+    }
+    fun onSinClick(view: View)
+    {
+        if(view is Button)
+        {
+            updateText("sin(")
+        }
+    }
+    fun onCosClick(view: View)
+    {
+        if(view is Button)
+        {
+            updateText("cos(")
+        }
+    }
+    fun onTgClick(view: View)
+    {
+        if(view is Button)
+        {
+            updateText("tg(")
+        }
+    }
+
+    fun onCtgClick(view: View)
+    {
+        if(view is Button)
+        {
+            updateText("ctg(")
+        }
+    }
+
+    fun onSqrtClick(view: View)
+    {
+        if(view is Button)
+        {
+            updateText("sqrt(")
+        }
+    }
+
+    fun onPowClick(view: View)
+    {
+        if(view is Button)
+        {
+            updateText("^(")
         }
     }
 }
