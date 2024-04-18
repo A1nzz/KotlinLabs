@@ -9,6 +9,9 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.core.os.HandlerCompat.postDelayed
 import org.mariuszgromada.math.mxparser.Expression
+import android.content.Intent
+import androidx.appcompat.app.AppCompatActivity
+
 
 
 
@@ -29,7 +32,12 @@ class MainActivity : ComponentActivity() {
         previousCal = findViewById(R.id.resultText)
         displayEditText.showSoftInputOnFocus = false
 
-
+        val scanButton = findViewById<Button>(R.id.scanButton)
+        scanButton.setOnClickListener {
+            val intent = Intent(this, ScanActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
     }
 
     private fun updateText(strToAdd:String){
